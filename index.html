@@ -94,19 +94,22 @@
   </div>
 
   <script>
-    // Árbol con corazones
+    // Árbol con forma de corazón definida
     const canvas = document.getElementById('treeCanvas');
     const ctx = canvas.getContext('2d');
 
     function drawHeart(x, y, size, color) {
       ctx.save();
-      ctx.beginPath();
       ctx.translate(x, y);
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(0, -size/2, -size, -size/2, -size, 0);
-      ctx.bezierCurveTo(-size, size, 0, size, 0, size*1.5);
-      ctx.bezierCurveTo(0, size, size, size, size, 0);
-      ctx.bezierCurveTo(size, -size/2, 0, -size/2, 0, 0);
+      ctx.scale(size / 100, size / 100);
+      ctx.beginPath();
+      ctx.moveTo(75, 40);
+      ctx.bezierCurveTo(75, 37, 70, 25, 50, 25);
+      ctx.bezierCurveTo(20, 25, 20, 62.5, 20, 62.5);
+      ctx.bezierCurveTo(20, 80, 40, 102, 75, 120);
+      ctx.bezierCurveTo(110, 102, 130, 80, 130, 62.5);
+      ctx.bezierCurveTo(130, 62.5, 130, 25, 100, 25);
+      ctx.bezierCurveTo(85, 25, 75, 37, 75, 40);
       ctx.closePath();
       ctx.fillStyle = color;
       ctx.fill();
@@ -115,14 +118,21 @@
 
     function drawTree() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#37a86e';
-      ctx.fillRect(140, 200, 20, 100);
 
+      // Tronco
+      ctx.fillStyle = '#37a86e';
+      ctx.fillRect(145, 200, 10, 100);
+
+      // Corazones en forma de copa
       const colors = ['#FF69B4', '#FF1493', '#FFD700', '#FF8C00', '#F08080'];
-      for (let i = 0; i < 150; i++) {
-        const x = 100 + Math.random() * 100;
-        const y = 50 + Math.random() * 100;
-        const size = 4 + Math.random() * 6;
+      const positions = [
+        [150, 120], [130, 130], [170, 130], [120, 150], [180, 150],
+        [110, 170], [190, 170], [140, 160], [160, 160], [150, 140],
+        [125, 180], [175, 180], [150, 180], [135, 200], [165, 200]
+      ];
+
+      for (const [x, y] of positions) {
+        const size = 20 + Math.random() * 10;
         const color = colors[Math.floor(Math.random() * colors.length)];
         drawHeart(x, y, size, color);
       }
@@ -130,7 +140,7 @@
 
     // Contador
     const contador = document.getElementById('contador');
-    const fechaInicio = new Date('2024-07-01T00:00:00');
+    const fechaInicio = new Date('2023-07-02T00:00:00');
 
     function actualizarContador() {
       const ahora = new Date();
