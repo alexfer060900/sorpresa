@@ -161,7 +161,7 @@
 
       // --- Phase 1: Growing Trunk and Branches ---
       if (animationPhase === 0) {
-          growthProgress = Math.min(1, elapsed / animationDuration); // Progress from 0 to 1
+          growthProgress = Math.min(1, elapsed / animationDuration); 
           
           // Draw growing trunk
           const trunkHeight = 150;
@@ -218,7 +218,7 @@
           // Colors for the hearts (lila-toned palette)
           const colors = ['#DDA0DD', '#EE82EE', '#DA70D6', '#BA55D3', '#9370DB', '#BF70B6', '#FFB6C1'];
           
-          const heartsToDraw = Math.floor(bloomProgress * totalHearts); // Draw hearts gradually
+          const heartsToDraw = Math.floor(bloomProgress * allHearts.length); // Draw hearts gradually
 
           for (let i = 0; i < heartsToDraw; i++) {
               const heart = allHearts[i];
@@ -261,32 +261,40 @@
 
     // Pre-calculate all heart positions once to avoid re-calculating on each frame
     const allHearts = [];
-    const totalHearts = 800; // Increased total hearts for higher density
 
     function precalculateHearts() {
         const colors = ['#DDA0DD', '#EE82EE', '#DA70D6', '#BA55D3', '#9370DB', '#BF70B6', '#FFB6C1'];
-        const branches = [
-            { cx: 200, cy: 180, r: 80, count: 200 }, // Main large cluster
-            { cx: 160, cy: 160, r: 60, count: 100 }, // Top-left cluster
-            { cx: 240, cy: 160, r: 60, count: 100 }, // Top-right cluster
-            { cx: 180, cy: 220, r: 70, count: 150 }, // Lower-left cluster
-            { cx: 220, cy: 220, r: 70, count: 150 }, // Lower-right cluster
-            { cx: 200, cy: 120, r: 40, count: 80 }, // Top-most smaller cluster
-            { cx: 170, cy: 190, r: 50, count: 70 }, // Additional middle-left
-            { cx: 230, cy: 190, r: 50, count: 70 }  // Additional middle-right
+        
+        // Define more branches/areas to make the tree look much fuller and wider
+        // Adjusted to give a more distinct heart shape/wider spread
+        const canopyShapeDefinitions = [
+            // Main central and upper parts of the heart shape
+            { cx: 200, cy: 150, r: 90, count: 250, yRatio: 0.8 }, // Main central lobe, slightly wider radius
+            { cx: 160, cy: 120, r: 70, count: 150, yRatio: 0.8 }, // Top-left lobe
+            { cx: 240, cy: 120, r: 70, count: 150, yRatio: 0.8 }, // Top-right lobe
+
+            // Lower and wider parts, connecting to the central mass
+            { cx: 140, cy: 190, r: 80, count: 200, yRatio: 0.7 }, // Mid-left, wider spread
+            { cx: 260, cy: 190, r: 80, count: 200, yRatio: 0.7 }, // Mid-right, wider spread
+
+            // Bottom tip of the heart
+            { cx: 200, cy: 230, r: 50, count: 100, yRatio: 0.6 } // Bottom tip, more concentrated
         ];
 
-        for (const b of branches) {
-            for (let i = 0; i < b.count; i++) {
+        let totalHeartsGenerated = 0;
+        for (const def of canopyShapeDefinitions) {
+            for (let i = 0; i < def.count; i++) {
                 const angle = Math.random() * 2 * Math.PI;
-                const radius = b.r * Math.sqrt(Math.random()); 
-                const x = b.cx + Math.cos(angle) * radius;
-                const y = b.cy + Math.sin(angle) * radius * 0.8; 
-                const size = 10 + Math.random() * 12; 
+                const radius = def.r * Math.sqrt(Math.random()); 
+                const x = def.cx + Math.cos(angle) * radius;
+                const y = def.cy + Math.sin(angle) * radius * def.yRatio; // Use yRatio for elliptical spread
+                const size = 10 + Math.random() * 12; // Slightly larger hearts, more variation
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 allHearts.push({ x, y, size, color });
+                totalHeartsGenerated++;
             }
         }
+        console.log(`Total hearts pre-calculated: ${totalHeartsGenerated}`);
     }
 
 
@@ -297,7 +305,7 @@
       const ahora = new Date();
       const diff = ahora - fechaInicio;
       const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const horas = Math.floor((diff / (1000 * 60)) % 24);
       const minutos = Math.floor((diff / (1000 * 60)) % 60);
       const segundos = Math.floor((diff / 1000) % 60);
 
@@ -307,7 +315,8 @@
     function crearCorazon() {
       const corazon = document.createElement('div');
       corazon.classList.add('corazon');
-      corazon.style.left = Math.random() * 100 + '%';
+      // Ensure hearts fall across the entire card width
+      corazon.style.left = Math.random() * 90 + 5 + '%'; // 5% to 95% to avoid edge clipping
       corazon.style.animationDuration = 3 + Math.random() * 3 + 's';
       corazon.style.animationDelay = -Math.random() * 5 + 's'; 
       document.getElementById('card').appendChild(corazon);
@@ -324,10 +333,10 @@
     requestAnimationFrame(drawTree); 
 
     // Falling hearts continue independently
-    for (let i = 0; i < 15; i++) { 
+    for (let i = 0; i < 20; i++) { // Increased initial falling hearts
       crearCorazon();
     }
-    setInterval(crearCorazon, 300);
+    setInterval(crearCorazon, 200); // Increased frequency of falling hearts
   </script>
 </body>
 </html>
