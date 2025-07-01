@@ -88,7 +88,7 @@
   </audio>
 
   <div class="card" id="card">
-    <canvas id="treeCanvas" width="300" height="300"></canvas>
+    <canvas id="treeCanvas" width="400" height="400"></canvas>
     <div class="mensaje">
       <p>Para mi princesita:</p>
       <p>Desde que llegaste a mi vida, cada día tiene un brillo especial.<br>
@@ -99,7 +99,6 @@
   </div>
 
   <script>
-    // Árbol con forma de corazón simétrica y suave
     const canvas = document.getElementById('treeCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -126,22 +125,21 @@
 
       // Tronco
       ctx.fillStyle = '#37a86e';
-      ctx.fillRect(145, 200, 10, 100);
+      ctx.fillRect(195, 250, 10, 150);
 
-      // Corazones en forma simétrica
+      // Corazones frondosos
       const colors = ['#FF69B4', '#FF1493', '#FFD700', '#FF8C00', '#F08080'];
-      for (let i = 0; i < 50; i++) {
-        const angle = Math.random() * Math.PI;
-        const radius = 60 + Math.random() * 30;
-        const x = 150 + Math.cos(angle) * radius;
-        const y = 150 - Math.sin(angle) * radius * 0.7;
-        const size = 10 + Math.random() * 10;
+      for (let i = 0; i < 200; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const radius = 50 + Math.random() * 60;
+        const x = 200 + Math.cos(angle) * radius;
+        const y = 200 + Math.sin(angle) * radius * 0.6;
+        const size = 8 + Math.random() * 12;
         const color = colors[Math.floor(Math.random() * colors.length)];
         drawHeart(x, y, size, color);
       }
     }
 
-    // Contador
     const contador = document.getElementById('contador');
     const fechaInicio = new Date('2023-07-02T00:00:00');
 
@@ -156,7 +154,6 @@
       contador.innerHTML = `Mi amor por ti comenzó hace...<br><span>${dias}</span> días <span>${horas}</span> horas <span>${minutos}</span> minutos <span>${segundos}</span> segundos`;
     }
 
-    // Corazones animados
     function crearCorazon() {
       const corazon = document.createElement('div');
       corazon.classList.add('corazon');
@@ -167,7 +164,6 @@
       setTimeout(() => corazon.remove(), 6000);
     }
 
-    // Inicialización
     drawTree();
     actualizarContador();
     setInterval(actualizarContador, 1000);
@@ -175,4 +171,5 @@
   </script>
 </body>
 </html>
+
 
