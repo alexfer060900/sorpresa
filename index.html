@@ -82,6 +82,11 @@
   </style>
 </head>
 <body>
+  <audio autoplay loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-romantic.mp3" type="audio/mpeg">
+    Tu navegador no soporta audio HTML5.
+  </audio>
+
   <div class="card" id="card">
     <canvas id="treeCanvas" width="300" height="300"></canvas>
     <div class="mensaje">
@@ -94,7 +99,7 @@
   </div>
 
   <script>
-    // Árbol con forma de corazón definida
+    // Árbol con forma de corazón simétrica y suave
     const canvas = document.getElementById('treeCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -123,16 +128,14 @@
       ctx.fillStyle = '#37a86e';
       ctx.fillRect(145, 200, 10, 100);
 
-      // Corazones en forma de copa
+      // Corazones en forma simétrica
       const colors = ['#FF69B4', '#FF1493', '#FFD700', '#FF8C00', '#F08080'];
-      const positions = [
-        [150, 120], [130, 130], [170, 130], [120, 150], [180, 150],
-        [110, 170], [190, 170], [140, 160], [160, 160], [150, 140],
-        [125, 180], [175, 180], [150, 180], [135, 200], [165, 200]
-      ];
-
-      for (const [x, y] of positions) {
-        const size = 20 + Math.random() * 10;
+      for (let i = 0; i < 50; i++) {
+        const angle = Math.random() * Math.PI;
+        const radius = 60 + Math.random() * 30;
+        const x = 150 + Math.cos(angle) * radius;
+        const y = 150 - Math.sin(angle) * radius * 0.7;
+        const size = 10 + Math.random() * 10;
         const color = colors[Math.floor(Math.random() * colors.length)];
         drawHeart(x, y, size, color);
       }
