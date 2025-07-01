@@ -127,16 +127,26 @@
       ctx.fillStyle = '#37a86e';
       ctx.fillRect(195, 250, 10, 150);
 
-      // Corazones frondosos
+      // Ramas en varias capas
       const colors = ['#FF69B4', '#FF1493', '#FFD700', '#FF8C00', '#F08080'];
-      for (let i = 0; i < 200; i++) {
-        const angle = Math.random() * 2 * Math.PI;
-        const radius = 50 + Math.random() * 60;
-        const x = 200 + Math.cos(angle) * radius;
-        const y = 200 + Math.sin(angle) * radius * 0.6;
-        const size = 8 + Math.random() * 12;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        drawHeart(x, y, size, color);
+      const branches = [
+        { cx: 200, cy: 180, r: 60, count: 100 },
+        { cx: 180, cy: 150, r: 40, count: 60 },
+        { cx: 220, cy: 150, r: 40, count: 60 },
+        { cx: 160, cy: 190, r: 30, count: 40 },
+        { cx: 240, cy: 190, r: 30, count: 40 }
+      ];
+
+      for (const b of branches) {
+        for (let i = 0; i < b.count; i++) {
+          const angle = Math.random() * 2 * Math.PI;
+          const radius = b.r * Math.sqrt(Math.random());
+          const x = b.cx + Math.cos(angle) * radius;
+          const y = b.cy + Math.sin(angle) * radius * 0.8;
+          const size = 8 + Math.random() * 10;
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          drawHeart(x, y, size, color);
+        }
       }
     }
 
