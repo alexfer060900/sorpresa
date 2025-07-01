@@ -26,15 +26,21 @@
       max-width: 600px;
       position: relative;
       overflow: hidden; /* Hide overflowing hearts */
+      min-height: 450px; /* Ensure card has enough height for content + animation */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* Distribute space between elements */
     }
 
     canvas {
       display: block;
-      margin: 0 auto 1rem auto;
+      margin: 0 auto; /* Center the canvas */
+      flex-shrink: 0; /* Prevent canvas from shrinking */
     }
 
     .mensaje {
       font-size: 1rem;
+      margin-top: 1rem; /* Add some space above message */
       margin-bottom: 1rem;
       color: #333; /* Darker text for readability */
     }
@@ -42,6 +48,7 @@
     .contador {
       font-size: 1.2rem;
       color: #7A3D7A; /* Deep lila color for the counter */
+      margin-top: auto; /* Push counter to the bottom */
     }
 
     .contador span {
@@ -92,8 +99,7 @@
   </audio>
 
   <div class="card" id="card">
-    <canvas id="treeCanvas" width="400" height="400"></canvas>
-    <div class="mensaje">
+    <canvas id="treeCanvas" width="400" height="350"></canvas> <div class="mensaje">
       <p>Para mi princesita:</p>
       <p>Desde que llegaste a mi vida, cada día tiene un brillo especial.<br>
       Si pudiera elegir mil veces, mil veces te elegiría a ti.<br>
@@ -106,6 +112,14 @@
     const canvas = document.getElementById('treeCanvas');
     const ctx = canvas.getContext('2d');
 
+    // Global variable for animation progress
+    let growthProgress = 0; // 0 to 1 for growth, then stays at 1 for hearts to appear
+    let animationPhase = 0; // 0: initial, 1: growing trunk/branches, 2: blooming hearts
+    const animationDuration = 3000; // Total duration for the growing phase (3 seconds)
+    const bloomDuration = 2000; // Duration for hearts to bloom (2 seconds)
+    let startTime = null;
+
+    // Heart drawing function (no changes needed here)
     function drawHeart(x, y, size, color) {
       ctx.save();
       ctx.translate(x, y);
@@ -124,55 +138,160 @@
       ctx.restore();
     }
 
-    function drawTree() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Tronco (slightly wider and more central)
-      ctx.fillStyle = '#6B8E23'; // Olive Green for a more natural trunk
-      ctx.fillRect(190, 250, 20, 150); // x, y, width, height
-
-      // Colors for the hearts (lila-toned palette)
-      const colors = ['#DDA0DD', '#EE82EE', '#DA70D6', '#BA55D3', '#9370DB', '#BF70B6', '#FFB6C1']; // Plum, Violet, Orchid, MediumOrchid, MediumPurple, a new lila, and a light pink
-      
-      // Define more branches/areas to make the tree look much fuller
-      const branches = [
-        { cx: 200, cy: 180, r: 80, count: 200 }, // Main large cluster
-        { cx: 160, cy: 160, r: 60, count: 100 }, // Top-left cluster
-        { cx: 240, cy: 160, r: 60, count: 100 }, // Top-right cluster
-        { cx: 180, cy: 220, r: 70, count: 150 }, // Lower-left cluster
-        { cx: 220, cy: 220, r: 70, count: 150 }, // Lower-right cluster
-        { cx: 200, cy: 120, r: 40, count: 80 } // Top-most smaller cluster
-      ];
-
-      for (const b of branches) {
-        for (let i = 0; i < b.count; i++) {
-          const angle = Math.random() * 2 * Math.PI;
-          const radius = b.r * Math.sqrt(Math.random()); // More even distribution within the circle
-          const x = b.cx + Math.cos(angle) * radius;
-          const y = b.cy + Math.sin(angle) * radius * 0.8; // Elliptical distribution
-          const size = 10 + Math.random() * 12; // Slightly larger hearts, more variation
-          const color = colors[Math.floor(Math.random() * colors.length)];
-          drawHeart(x, y, size, color);
-        }
-      }
+    // New draw branch function to animate growth
+    function drawBranch(startX, startY, endX, endY, width, progress, color) {
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      // Calculate the current end point based on progress
+      const currentEndX = startX + (endX - startX) * progress;
+      const currentEndY = startY + (endY - startY) * progress;
+      ctx.lineTo(currentEndX, currentEndY);
+      ctx.lineWidth = width * progress; // Make branches grow in width too
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = color;
+      ctx.stroke();
     }
 
+    // Tree drawing function, now dynamic with growthProgress
+    function drawTree(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas on each frame
+
+      // --- Phase 1: Growing Trunk and Branches ---
+      if (animationPhase === 0) {
+          growthProgress = Math.min(1, elapsed / animationDuration); // Progress from 0 to 1
+          
+          // Draw growing trunk
+          const trunkHeight = 150;
+          const currentTrunkHeight = trunkHeight * growthProgress;
+          ctx.fillStyle = '#6B8E23'; // Olive Green
+          ctx.fillRect(190, 250 + (trunkHeight - currentTrunkHeight), 20, currentTrunkHeight);
+
+          // Define branches with their full coordinates
+          const branchesDefinition = [
+              { start: [200, 250], end: [180, 200], width: 10 },
+              { start: [200, 250], end: [220, 200], width: 10 },
+              { start: [180, 200], end: [160, 180], width: 6 },
+              { start: [180, 200], end: [185, 160], width: 6 },
+              { start: [220, 200], end: [240, 180], width: 6 },
+              { start: [220, 200], end: [215, 160], width: 6 },
+              { start: [160, 180], end: [150, 150], width: 4 },
+              { start: [240, 180], end: [250, 150], width: 4 },
+              { start: [185, 160], end: [170, 130], width: 4 },
+              { start: [215, 160], end: [230, 130], width: 4 }
+          ];
+
+          branchesDefinition.forEach(branch => {
+              drawBranch(branch.start[0], branch.start[1], branch.end[0], branch.end[1], branch.width, growthProgress, '#6B8E23');
+          });
+
+          if (growthProgress >= 1) {
+              animationPhase = 1; // Move to the blooming phase
+              startTime = timestamp; // Reset startTime for the next phase
+          }
+      } 
+      // --- Phase 2: Blooming Hearts ---
+      else if (animationPhase === 1) {
+          const bloomProgress = Math.min(1, elapsed / bloomDuration);
+
+          // Draw full trunk and branches
+          ctx.fillStyle = '#6B8E23'; // Olive Green
+          ctx.fillRect(190, 250, 20, 150);
+          const branchesDefinition = [ // Re-draw all branches at full length
+              { start: [200, 250], end: [180, 200], width: 10 },
+              { start: [200, 250], end: [220, 200], width: 10 },
+              { start: [180, 200], end: [160, 180], width: 6 },
+              { start: [180, 200], end: [185, 160], width: 6 },
+              { start: [220, 200], end: [240, 180], width: 6 },
+              { start: [220, 200], end: [215, 160], width: 6 },
+              { start: [160, 180], end: [150, 150], width: 4 },
+              { start: [240, 180], end: [250, 150], width: 4 },
+              { start: [185, 160], end: [170, 130], width: 4 },
+              { start: [215, 160], end: [230, 130], width: 4 }
+          ];
+          branchesDefinition.forEach(branch => {
+              drawBranch(branch.start[0], branch.start[1], branch.end[0], branch.end[1], branch.width, 1, '#6B8E23');
+          });
+
+          // Colors for the hearts (lila-toned palette)
+          const colors = ['#DDA0DD', '#EE82EE', '#DA70D6', '#BA55D3', '#9370DB', '#BF70B6', '#FFB6C1'];
+          
+          const heartsToDraw = Math.floor(bloomProgress * totalHearts); // Draw hearts gradually
+
+          for (let i = 0; i < heartsToDraw; i++) {
+              const heart = allHearts[i];
+              drawHeart(heart.x, heart.y, heart.size, heart.color);
+          }
+
+          if (bloomProgress >= 1) {
+              animationPhase = 2; // Animation complete
+          }
+      }
+      // --- Phase 3: Animation Complete (Full Tree) ---
+      else if (animationPhase === 2) {
+          // Draw full tree (trunk, branches, all hearts)
+          ctx.fillStyle = '#6B8E23'; // Olive Green
+          ctx.fillRect(190, 250, 20, 150);
+          const branchesDefinition = [ // Re-draw all branches at full length
+              { start: [200, 250], end: [180, 200], width: 10 },
+              { start: [200, 250], end: [220, 200], width: 10 },
+              { start: [180, 200], end: [160, 180], width: 6 },
+              { start: [180, 200], end: [185, 160], width: 6 },
+              { start: [220, 200], end: [240, 180], width: 6 },
+              { start: [220, 200], end: [215, 160], width: 6 },
+              { start: [160, 180], end: [150, 150], width: 4 },
+              { start: [240, 180], end: [250, 150], width: 4 },
+              { start: [185, 160], end: [170, 130], width: 4 },
+              { start: [215, 160], end: [230, 130], width: 4 }
+          ];
+          branchesDefinition.forEach(branch => {
+              drawBranch(branch.start[0], branch.start[1], branch.end[0], branch.end[1], branch.width, 1, '#6B8E23');
+          });
+
+          // Draw all hearts
+          allHearts.forEach(heart => {
+              drawHeart(heart.x, heart.y, heart.size, heart.color);
+          });
+      }
+
+      requestAnimationFrame(drawTree); // Loop the animation
+    }
+
+    // Pre-calculate all heart positions once to avoid re-calculating on each frame
+    const allHearts = [];
+    const totalHearts = 800; // Increased total hearts for higher density
+
+    function precalculateHearts() {
+        const colors = ['#DDA0DD', '#EE82EE', '#DA70D6', '#BA55D3', '#9370DB', '#BF70B6', '#FFB6C1'];
+        const branches = [
+            { cx: 200, cy: 180, r: 80, count: 200 }, // Main large cluster
+            { cx: 160, cy: 160, r: 60, count: 100 }, // Top-left cluster
+            { cx: 240, cy: 160, r: 60, count: 100 }, // Top-right cluster
+            { cx: 180, cy: 220, r: 70, count: 150 }, // Lower-left cluster
+            { cx: 220, cy: 220, r: 70, count: 150 }, // Lower-right cluster
+            { cx: 200, cy: 120, r: 40, count: 80 }, // Top-most smaller cluster
+            { cx: 170, cy: 190, r: 50, count: 70 }, // Additional middle-left
+            { cx: 230, cy: 190, r: 50, count: 70 }  // Additional middle-right
+        ];
+
+        for (const b of branches) {
+            for (let i = 0; i < b.count; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const radius = b.r * Math.sqrt(Math.random()); 
+                const x = b.cx + Math.cos(angle) * radius;
+                const y = b.cy + Math.sin(angle) * radius * 0.8; 
+                const size = 10 + Math.random() * 12; 
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                allHearts.push({ x, y, size, color });
+            }
+        }
+    }
+
+
     const contador = document.getElementById('contador');
-    // Set the start date based on the second image's counter: 729 days 20 hours 8 seconds
-    // To calculate the exact date, we'll subtract this duration from the current time.
-    // Current time: Monday, June 30, 2025 at 8:21:11 PM -05
-    // 729 days = 729 * 24 * 60 * 60 * 1000 milliseconds
-    // 20 hours = 20 * 60 * 60 * 1000 milliseconds
-    // 8 seconds = 8 * 1000 milliseconds
-    // Total milliseconds to subtract: 63014408000
-    // Current date: 2025-06-30T20:21:11 (assuming -05:00, so local time)
-    // 2025-06-30T20:21:11 - 729 days 20 hours 8 seconds
-    // This calculation is a bit tricky to do precisely without a date library,
-    // so I will set it to an approximate date based on the image:
-    // If today is 2025-06-30 and the counter is 729 days, it means the start date was around 2023-07-02.
-    // The previous code had '2023-07-02T00:00:00', which is very close to the 729 days.
-    // Let's keep that for consistency, but if you want to be super precise, you'd calculate it.
-    const fechaInicio = new Date('2023-07-02T00:00:00'); // Keeping the original start date for consistency with the spirit of the code
+    const fechaInicio = new Date('2023-07-02T00:00:00'); // Keeping for consistency
 
     function actualizarContador() {
       const ahora = new Date();
@@ -190,21 +309,25 @@
       corazon.classList.add('corazon');
       corazon.style.left = Math.random() * 100 + '%';
       corazon.style.animationDuration = 3 + Math.random() * 3 + 's';
-      corazon.style.animationDelay = -Math.random() * 5 + 's'; // Stagger animations
+      corazon.style.animationDelay = -Math.random() * 5 + 's'; 
       document.getElementById('card').appendChild(corazon);
 
       setTimeout(() => corazon.remove(), 6000);
     }
 
-    drawTree();
+    // Initialize
+    precalculateHearts(); // Pre-calculate heart positions once
     actualizarContador();
     setInterval(actualizarContador, 1000);
     
-    // Create multiple falling hearts initially and then at intervals
-    for (let i = 0; i < 15; i++) { // Increase initial number of falling hearts
+    // Start animation loop
+    requestAnimationFrame(drawTree); 
+
+    // Falling hearts continue independently
+    for (let i = 0; i < 15; i++) { 
       crearCorazon();
     }
-    setInterval(crearCorazon, 300); // Keep creating new hearts regularly
+    setInterval(crearCorazon, 300);
   </script>
 </body>
 </html>
